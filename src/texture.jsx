@@ -3,40 +3,30 @@ import { Graphics } from "@pixi/graphics";
 import { Input, Button } from "@pixi/ui";
 import reactLogo from "./assets/react.svg";
 
-export default function run(app) {
-  const container = new Container();
-  app.stage.addChild(container);
-
-  const text = new Text("This is a PixiJS text", {
-    fontFamily: "Arial",
-    fontSize: 24,
-    fill: 0xffffff,
-    align: "center",
-  });
-  container.addChild(text);
-
+function add_word(app, word, position) {
   const borderColor = "#ffffff";
   const backgroundColor = "#ffffff";
-  const fontSize = 12;
+  const fontSize = 14;
   const maxLength = 100;
   const align = ["center", "left", "right"];
   const placeholder = "Enter text";
   const textColor = "#000000";
-  const width = 320;
-  const height = 100;
-  const radius = 11;
-  const border = 5;
+  const width = 200;
+  const height = 30;
+  const radius = 0;
+  const border = 1;
   const paddingTop = 0;
   const paddingRight = 10;
   const paddingBottom = 0;
   const paddingLeft = 10;
-  const cleanOnFocus = true;
+  const cleanOnFocus = false;
+
   const input = new Input({
     bg: new Graphics()
       .beginFill(borderColor)
-      .drawRoundedRect(0, 0, width, height, radius + border)
+      .drawRect(0, 0, width, height, radius + border)
       .beginFill(backgroundColor)
-      .drawRoundedRect(
+      .drawRect(
         border,
         border,
         width - border * 2,
@@ -46,43 +36,89 @@ export default function run(app) {
     textStyle: {
       fill: textColor,
       fontSize,
-      fontWeight: "bold",
+      fontWeight: "normal",
     },
     maxLength,
     align,
     placeholder,
-    value: text,
+    value: "hello",
     padding: [paddingTop, paddingRight, paddingBottom, paddingLeft],
     cleanOnFocus,
   });
 
-  input.onEnter.connect((val) => {
-    console.log(`Input (${val})`);
+  const text = new Text(word, {
+    fontFamily: "Arial",
+    fontSize: 24,
+    fill: 0xffffff,
+    align: "center",
   });
-  container.addChild(input);
 
-  // const input = new Input({
-  //   bg: 0xaaaaaa,
-  //   placeholder: "Enter text",
-  //   padding: {
-  //     top: 11,
-  //     right: 11,
-  //     bottom: 11,
-  //     left: 11,
-  //   }, // alternatively you can use [11, 11, 11, 11] or [11, 11] or just 11
-  // });
-  //container.addChild(input.view);
+  text.eventMode = "static";
+  text.cursor = "pointer";
+  text.interactive = true;
 
-  // Move container to the center
-  container.x = app.screen.width / 2;
-  container.y = app.screen.height / 2;
+  text.x = position.x;
+  text.y = position.y;
 
-  // Center logo sprite in local container coordinates
-  container.pivot.x = container.width / 2;
-  container.pivot.y = container.height / 2;
+  text.on("click", function (e) {
+    if (e.detail == 2) {
+      console.log("clicky", e.detail);
+      input.x = text.x;
+      input.y = text.y;
+      input.value = text.text;
+      app.stage.removeChild(text);
+      app.stage.addChild(input);
+    }
+    e.stopPropagation();
+  });
 
-  //   app.ticker.add((delta) => {
-  //     container.rotation -= 0.01 * delta;
-  //   });
-  //
+  app.stage.on("pointerup", onDragEnd);
+  app.stage.on("pointerupoutside", onDragEnd);
+
+  let dragTarget = null;
+  let dragOffset = null;
+  function onDragMove(e) {
+    if (dragTarget) {
+      dragTarget.parent.toLocal(
+        { x: e.global.x - dragOffset.x, y: e.global.y - dragOffset.y },
+        null,
+        dragTarget.position
+      );
+    }
+  }
+
+  function onDragStart(e) {
+    this.alpha = 0.5;
+    dragTarget = this;
+    dragOffset = this.toLocal(e.global);
+    app.stage.on("pointermove", onDragMove);
+  }
+  text.on("pointerdown", onDragStart);
+
+  function onDragEnd() {
+    if (dragTarget) {
+      app.stage.off("pointermove", onDragMove);
+      dragTarget.alpha = 1;
+      dragTarget = null;
+    }
+  }
+  app.stage.addChild(text);
+
+  input.onEnter.connect((val) => {
+    app.stage.removeChild(input);
+    text.text = val;
+    app.stage.addChild(text);
+  });
+}
+
+export default function run(app) {
+  console.log("hello");
+  app.stage.eventMode = "static";
+  app.stage.hitArea = app.screen;
+  app.stage.on("click", function (e) {
+    if (e.detail == 2) {
+      console.log("oh!");
+      add_word(app, "bingo", e.global);
+    }
+  });
 }
