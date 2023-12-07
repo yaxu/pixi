@@ -1,7 +1,12 @@
 import { Container, Sprite, Texture, Text } from "pixi.js";
+
 import { Graphics } from "@pixi/graphics";
 import { Input, Button } from "@pixi/ui";
 import reactLogo from "./assets/react.svg";
+
+import { functions } from "./types.jsx";
+window.functions = functions;
+console.log(functions);
 
 function add_word(app, word, position) {
   const borderColor = "#ffffff";
