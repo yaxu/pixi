@@ -4,9 +4,9 @@ import { Graphics } from "@pixi/graphics";
 import { Input, Button } from "@pixi/ui";
 import reactLogo from "./assets/react.svg";
 
-import { functions } from "./types.jsx";
-window.functions = functions;
-console.log(functions);
+import { types } from "./types.jsx";
+window.types = types;
+console.log(types);
 
 function add_word(app, word, position) {
   const borderColor = "#ffffff";
